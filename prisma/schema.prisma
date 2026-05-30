@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  clerkId      String        @unique
+  email        String        @unique
+  name         String?
+  plan         Plan          @default(FREE)
+  campaigns    Campaign[]
+  subscription Subscription?
+  createdAt    DateTime      @default(now())
+}
+
+model Campaign {
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id])
+  name              String
+  targetDescription String
+  status            CampaignStatus @default(DRAFT)
+  leads             Lead[]
+  sequences         Sequence[]
+  createdAt         DateTime       @default(now())
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  campaignId  String
+  campaign    Campaign   @relation(fields: [campaignId], references: [id])
+  firstName   String
+  lastName    String
+  email       String
+  company     String
+  title       String
+  linkedinUrl String?
+  emailLogs   EmailLog[]
+  createdAt   DateTime   @default(now())
+}
+
+model Sequence {
+  id         String     @id @default(cuid())
+  campaignId String
+  campaign   Campaign   @relation(fields: [campaignId], references: [id])
+  stepNumber Int
+  subject    String
+  body       String     @db.Text
+  delayDays  Int        @default(0)
+  emailLogs  EmailLog[]
+}
+
+model EmailLog {
+  id         String      @id @default(cuid())
+  leadId     String
+  lead       Lead        @relation(fields: [leadId], references: [id])
+  sequenceId String
+  sequence   Sequence    @relation(fields: [sequenceId], references: [id])
+  status     EmailStatus @default(PENDING)
+  sentAt     DateTime?
+  openedAt   DateTime?
+  repliedAt  DateTime?
+  createdAt  DateTime    @default(now())
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  stripeCustomerId String   @unique
+  stripeSubId      String   @unique
+  plan             Plan
+  status           String
+  currentPeriodEnd DateTime
+}
+
+enum Plan {
+  FREE
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  OPENED
+  REPLIED
+  BOUNCED
+}
