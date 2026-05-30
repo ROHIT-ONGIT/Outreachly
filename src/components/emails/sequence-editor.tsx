@@ -3,9 +3,81 @@
 import { useEffect, useState } from "react";
 import { StepDialog } from "./step-dialog";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Clock, ArrowDown, Sparkles } from "lucide-react";
+import { Pencil, Trash2, Clock, ArrowDown, Sparkles, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Lead, Sequence } from "@/generated/prisma/client";
+
+function SendButton({ sequenceId, leads }: { sequenceId: string; leads: Lead[] }) {
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState("");
+  const [selectedLeadId, setSelectedLeadId] = useState(leads[0]?.id ?? "");
+
+  async function handleSend() {
+    if (!selectedLeadId) return;
+    setSending(true);
+    setErr("");
+    setSent(false);
+    try {
+      const res = await fetch("/api/emails/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: selectedLeadId, sequenceId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setErr(json.error ?? "Send failed");
+      } else {
+        setSent(true);
+        setTimeout(() => setSent(false), 3000);
+      }
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (leads.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      {leads.length > 1 && (
+        <select
+          value={selectedLeadId}
+          onChange={(e) => setSelectedLeadId(e.target.value)}
+          className="h-7 text-[11px] rounded-lg border border-border/70 bg-background px-2 text-foreground focus:outline-none"
+        >
+          {leads.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.firstName} {l.lastName}
+            </option>
+          ))}
+        </select>
+      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleSend}
+        disabled={sending || sent}
+        title="Send this step to lead"
+        className={cn(
+          "h-8 px-2.5 rounded-lg text-[11px] gap-1.5",
+          sent
+            ? "text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        {sending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : sent ? (
+          <><CheckCircle2 className="h-3.5 w-3.5" /> Sent</>
+        ) : (
+          <><Send className="h-3.5 w-3.5" /> Send</>
+        )}
+      </Button>
+      {err && <p className="text-[10px] text-destructive">{err}</p>}
+    </div>
+  );
+}
 
 export function SequenceEditor({
   campaignId,
@@ -105,7 +177,8 @@ export function SequenceEditor({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <SendButton sequenceId={seq.id} leads={leads} />
                   <StepDialog
                     campaignId={campaignId}
                     leads={leads}
