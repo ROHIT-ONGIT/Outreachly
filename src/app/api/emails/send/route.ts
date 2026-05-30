@@ -38,16 +38,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
-  // Prevent duplicate sends
-  const existing = await prisma.emailLog.findFirst({
-    where: { leadId, sequenceId, status: { in: ["PENDING", "SENT"] } },
+  // Block only if already successfully delivered
+  const delivered = await prisma.emailLog.findFirst({
+    where: { leadId, sequenceId, status: { in: ["SENT", "OPENED", "REPLIED"] } },
   });
-  if (existing) {
+  if (delivered) {
     return NextResponse.json(
-      { error: "Email already sent or pending for this lead and step" },
+      { error: "Email already sent to this lead for this step" },
       { status: 409 }
     );
   }
+
+  // Clean up any stuck PENDING logs so we can retry
+  await prisma.emailLog.deleteMany({
+    where: { leadId, sequenceId, status: "PENDING" },
+  });
 
   const log = await prisma.emailLog.create({
     data: { leadId, sequenceId, status: "PENDING" },
