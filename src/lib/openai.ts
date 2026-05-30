@@ -50,12 +50,12 @@ Requirements:
 - End with a clear, low-friction CTA
 - Vary tone/angle across the 3 variants
 
-Respond with this exact JSON format:
-[
+Respond with this exact JSON object:
+{ "variants": [
   { "subject": "...", "body": "..." },
   { "subject": "...", "body": "..." },
   { "subject": "...", "body": "..." }
-]`,
+] }`,
       },
     ],
     response_format: { type: "json_object" },
@@ -66,5 +66,9 @@ Respond with this exact JSON format:
   if (!content) throw new Error("Empty response from OpenAI");
 
   const parsed = JSON.parse(content);
-  return (parsed.variants ?? parsed) as EmailVariant[];
+  // Handle { "variants": [...] } or any other top-level key wrapping an array
+  if (Array.isArray(parsed)) return parsed as EmailVariant[];
+  const firstArray = Object.values(parsed).find(Array.isArray);
+  if (firstArray) return firstArray as EmailVariant[];
+  return [] as EmailVariant[];
 }
