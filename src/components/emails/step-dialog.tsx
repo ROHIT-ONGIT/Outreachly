@@ -316,7 +316,7 @@ export function StepDialog({
         {trigger ?? <><Plus className="h-3.5 w-3.5 mr-1" /> Add Step</>}
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl h-[85vh] p-0 gap-0 overflow-hidden flex flex-col rounded-2xl">
+      <DialogContent className="max-w-5xl sm:max-w-5xl w-[90vw] h-[85vh] p-0 gap-0 overflow-hidden flex flex-col rounded-2xl">
         {/* Dialog header */}
         <DialogHeader className="px-6 py-4 border-b border-border/60 shrink-0">
           <DialogTitle className="text-[15px] font-bold">
