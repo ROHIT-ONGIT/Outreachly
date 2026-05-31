@@ -1,4 +1,8 @@
-import { ExternalLink } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { ExternalLink, MessageSquareReply } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Lead } from "@/generated/prisma/client";
 
@@ -59,6 +63,41 @@ function getAvatarColor(str: string) {
   return avatarColors[Math.abs(hash) % avatarColors.length];
 }
 
+function ReplyButton({ leadId }: { leadId: string }) {
+  const [replied, setReplied] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function markReplied() {
+    setLoading(true);
+    await fetch(`/api/leads/${leadId}/replied`, { method: "POST" });
+    setReplied(true);
+    setLoading(false);
+  }
+
+  if (replied) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Replied
+      </span>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={loading}
+      onClick={markReplied}
+      className="h-7 px-2 text-[11px] gap-1 text-muted-foreground hover:text-emerald-700 hover:bg-emerald-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+      title="Mark as replied — stops further follow-ups"
+    >
+      <MessageSquareReply className="h-3.5 w-3.5" />
+      {loading ? "…" : "Replied"}
+    </Button>
+  );
+}
+
 export function LeadTable({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return (
@@ -95,7 +134,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
           return (
             <div
               key={lead.id}
-              className="grid grid-cols-[2fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3.5 items-center hover:bg-muted/20 transition-colors duration-100"
+              className="grid grid-cols-[2fr_2fr_1.5fr_1fr_1fr_auto] gap-4 px-5 py-3.5 items-center hover:bg-muted/20 transition-colors duration-100 group"
             >
               {/* Lead name + avatar */}
               <div className="flex items-center gap-3 min-w-0">
@@ -129,12 +168,9 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
                 <AIScoreBadge score={score} />
               </div>
 
-              {/* Status */}
-              <div>
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
-                  Pending
-                </span>
+              {/* Status / Reply button */}
+              <div className="flex items-center gap-2">
+                <ReplyButton leadId={lead.id} />
               </div>
 
               {/* LinkedIn */}

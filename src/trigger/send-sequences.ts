@@ -29,12 +29,22 @@ export const sendSequencesTask = schedules.task({
       if (campaign.sequences.length === 0) continue;
 
       for (const lead of campaign.leads) {
-        // All EmailLogs already marked SENT for this lead in this campaign
+        // Stop sequence entirely if lead has replied to any step
+        const hasReplied = await prisma.emailLog.findFirst({
+          where: {
+            leadId: lead.id,
+            sequence: { campaignId: campaign.id },
+            status: "REPLIED",
+          },
+        });
+        if (hasReplied) { summary.skipped++; continue; }
+
+        // Count all processed steps (SENT, OPENED, REPLIED, BOUNCED)
         const sentLogs = await prisma.emailLog.findMany({
           where: {
             leadId: lead.id,
             sequence: { campaignId: campaign.id },
-            status: "SENT",
+            status: { in: ["SENT", "OPENED", "REPLIED", "BOUNCED"] },
           },
           include: { sequence: { select: { stepNumber: true } } },
           orderBy: { sequence: { stepNumber: "asc" } },
