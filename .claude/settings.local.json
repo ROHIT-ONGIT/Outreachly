@@ -19,7 +19,11 @@
       "Bash(dir C:\\\\Users\\\\Lenovo\\\\projects\\\\outreachly\\\\src *)",
       "Bash(git init *)",
       "Bash(git branch *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(git commit *)"
     ]
   }
 }

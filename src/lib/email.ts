@@ -39,7 +39,7 @@ export async function sendTransactionalEmail(
   params: SendTransactionalEmailParams
 ) {
   return resend.emails.send({
-    from: "Outreachly <noreply@outreachly.com>",
+    from: "Outreachly <noreply@outreachly.in>",
     to: params.to,
     subject: params.subject,
     html: params.html,

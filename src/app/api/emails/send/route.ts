@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     data: { leadId, sequenceId, status: "PENDING" },
   });
 
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL ?? "outreach@outreachly.com";
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL ?? "outreach@outreachly.in";
 
   try {
     await sendOutreachEmail({

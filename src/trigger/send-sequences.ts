@@ -13,7 +13,7 @@ export const sendSequencesTask = schedules.task({
   id: "send-sequences",
   cron: "*/15 * * * *",
   run: async () => {
-    const fromEmail = process.env.SENDGRID_FROM_EMAIL ?? "outreach@outreachly.com";
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL ?? "outreach@outreachly.in";
 
     const activeCampaigns = await prisma.campaign.findMany({
       where: { status: "ACTIVE" },
