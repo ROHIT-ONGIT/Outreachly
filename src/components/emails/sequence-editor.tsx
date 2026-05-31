@@ -100,6 +100,7 @@ export function SequenceEditor({
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this step?")) return;
+    setSequences(prev => prev.filter(s => s.id !== id));
     await fetch(`/api/sequences/${id}`, { method: "DELETE" });
     fetchSequences();
   }
