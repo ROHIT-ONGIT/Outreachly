@@ -45,7 +45,7 @@ Campaign Target: ${params.campaignTargetDescription}
 
 Requirements:
 - Each email under 150 words
-- Use the lead's name and company naturally
+- IMPORTANT: Use {{firstName}} instead of the lead's actual first name, and {{company}} instead of the actual company name — these are template variables replaced at send time
 - Focus on value, not features
 - End with a clear, low-friction CTA
 - Vary tone/angle across the 3 variants

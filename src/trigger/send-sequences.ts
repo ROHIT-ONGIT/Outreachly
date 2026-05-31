@@ -72,12 +72,20 @@ export const sendSequencesTask = schedules.task({
           data: { leadId: lead.id, sequenceId: nextSeq.id, status: "PENDING" },
         });
 
+        function personalize(text: string) {
+          return text
+            .replace(/\{\{firstName\}\}/g, lead.firstName)
+            .replace(/\{\{lastName\}\}/g, lead.lastName)
+            .replace(/\{\{company\}\}/g, lead.company)
+            .replace(/\{\{title\}\}/g, lead.title);
+        }
+
         try {
           await sendOutreachEmail({
             to: lead.email,
             from: fromEmail,
-            subject: nextSeq.subject,
-            body: nextSeq.body,
+            subject: personalize(nextSeq.subject),
+            body: personalize(nextSeq.body),
             emailLogId: log.id,
           });
 

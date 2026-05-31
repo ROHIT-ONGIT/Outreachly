@@ -60,12 +60,20 @@ export async function POST(req: Request) {
 
   const fromEmail = process.env.SENDGRID_FROM_EMAIL ?? "outreach@outreachly.in";
 
+  function personalize(text: string) {
+    return text
+      .replace(/\{\{firstName\}\}/g, lead.firstName)
+      .replace(/\{\{lastName\}\}/g, lead.lastName)
+      .replace(/\{\{company\}\}/g, lead.company)
+      .replace(/\{\{title\}\}/g, lead.title);
+  }
+
   try {
     await sendOutreachEmail({
       to: lead.email,
       from: fromEmail,
-      subject: sequence.subject,
-      body: sequence.body,
+      subject: personalize(sequence.subject),
+      body: personalize(sequence.body),
       emailLogId: log.id,
     });
 
