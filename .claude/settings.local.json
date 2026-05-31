@@ -23,7 +23,12 @@
       "Bash(git commit -m ' *)",
       "Bash(git remote *)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npx trigger *)",
+      "Bash(npx *)",
+      "Bash(npm list *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Lenovo\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Lenovo-projects-outreachly\\\\fd7f66a4-9da9-4fb9-b964-75a25a3a7245\\\\tasks\\\\b3sq97i2p.output\")",
+      "Bash(Select-Object -Last 40)"
     ]
   }
 }

@@ -2,7 +2,7 @@ import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
   // Get your project ref from https://cloud.trigger.dev → project settings
-  project: process.env.TRIGGER_PROJECT_ID ?? "proj_replace_me",
+  project: "proj_utvnjkhamfjvgnsfwgyb",
   runtime: "node",
   logLevel: "log",
   // Maximum seconds a single task run is allowed to execute
