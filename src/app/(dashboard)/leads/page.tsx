@@ -13,7 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Users, Upload } from "lucide-react";
-import type { Campaign, Lead } from "@/generated/prisma/client";
+import type { Campaign, Lead, EmailStatus } from "@/generated/prisma/client";
+
+type LeadWithStatus = Lead & { emailLogs: { status: EmailStatus }[] };
 
 function LeadsContent() {
   const searchParams = useSearchParams();
@@ -21,7 +23,7 @@ function LeadsContent() {
   const campaignId = searchParams.get("campaignId") ?? "";
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leads, setLeads] = useState<LeadWithStatus[]>([]);
   const [loadingLeads, setLoadingLeads] = useState(false);
 
   useEffect(() => {

@@ -4,7 +4,62 @@ import { useState } from "react";
 import { ExternalLink, MessageSquareReply } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Lead } from "@/generated/prisma/client";
+import type { Lead, EmailStatus } from "@/generated/prisma/client";
+
+type LeadWithStatus = Lead & { emailLogs: { status: EmailStatus }[] };
+
+const STATUS_PRIORITY: EmailStatus[] = ["REPLIED", "OPENED", "SENT", "BOUNCED", "PENDING"];
+
+function getLeadStatus(lead: LeadWithStatus): EmailStatus | "UNSUBSCRIBED" | null {
+  if (lead.unsubscribed) return "UNSUBSCRIBED";
+  for (const s of STATUS_PRIORITY) {
+    if (lead.emailLogs.some((l) => l.status === s)) return s;
+  }
+  return null;
+}
+
+const STATUS_STYLES: Record<EmailStatus | "UNSUBSCRIBED", string> = {
+  REPLIED:      "bg-emerald-50 text-emerald-700 border-emerald-200",
+  OPENED:       "bg-blue-50 text-blue-700 border-blue-200",
+  SENT:         "bg-indigo-50 text-indigo-700 border-indigo-200",
+  BOUNCED:      "bg-red-50 text-red-700 border-red-200",
+  PENDING:      "bg-amber-50 text-amber-700 border-amber-200",
+  UNSUBSCRIBED: "bg-zinc-100 text-zinc-500 border-zinc-200",
+};
+
+const STATUS_DOT: Record<EmailStatus | "UNSUBSCRIBED", string> = {
+  REPLIED:      "bg-emerald-500",
+  OPENED:       "bg-blue-500",
+  SENT:         "bg-indigo-500",
+  BOUNCED:      "bg-red-500",
+  PENDING:      "bg-amber-400",
+  UNSUBSCRIBED: "bg-zinc-400",
+};
+
+const STATUS_LABEL: Record<EmailStatus | "UNSUBSCRIBED", string> = {
+  REPLIED:      "Replied",
+  OPENED:       "Opened",
+  SENT:         "Sent",
+  BOUNCED:      "Bounced",
+  PENDING:      "Pending",
+  UNSUBSCRIBED: "Unsubscribed",
+};
+
+function StatusBadge({ lead }: { lead: LeadWithStatus }) {
+  const status = getLeadStatus(lead);
+  if (!status) {
+    return <span className="text-[11px] text-muted-foreground/50">—</span>;
+  }
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full border",
+      STATUS_STYLES[status]
+    )}>
+      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", STATUS_DOT[status])} />
+      {STATUS_LABEL[status]}
+    </span>
+  );
+}
 
 function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -98,7 +153,7 @@ function ReplyButton({ leadId }: { leadId: string }) {
   );
 }
 
-export function LeadTable({ leads }: { leads: Lead[] }) {
+export function LeadTable({ leads }: { leads: LeadWithStatus[] }) {
   if (leads.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center bg-card rounded-2xl border border-dashed border-border">
@@ -170,6 +225,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
 
               {/* Status / Reply button */}
               <div className="flex items-center gap-2">
+                <StatusBadge lead={lead} />
                 <ReplyButton leadId={lead.id} />
               </div>
 
