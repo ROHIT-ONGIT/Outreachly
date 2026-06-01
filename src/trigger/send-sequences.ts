@@ -33,15 +33,15 @@ export const sendSequencesTask = schedules.task({
         // Skip unsubscribed leads
         if (lead.unsubscribed) { summary.skipped++; continue; }
 
-        // Stop sequence entirely if lead has replied to any step
-        const hasReplied = await prisma.emailLog.findFirst({
+        // Stop sequence if lead has replied or bounced on any step
+        const stopReason = await prisma.emailLog.findFirst({
           where: {
             leadId: lead.id,
             sequence: { campaignId: campaign.id },
-            status: "REPLIED",
+            status: { in: ["REPLIED", "BOUNCED"] },
           },
         });
-        if (hasReplied) { summary.skipped++; continue; }
+        if (stopReason) { summary.skipped++; continue; }
 
         // Count all processed steps (SENT, OPENED, REPLIED, BOUNCED)
         const sentLogs = await prisma.emailLog.findMany({

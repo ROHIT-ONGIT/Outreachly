@@ -42,6 +42,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Lead has unsubscribed" }, { status: 422 });
   }
 
+  const hasBounced = await prisma.emailLog.findFirst({
+    where: { leadId: lead.id, status: "BOUNCED" },
+  });
+  if (hasBounced) {
+    return NextResponse.json({ error: "Lead email has bounced" }, { status: 422 });
+  }
+
   // Block only if already successfully delivered
   const delivered = await prisma.emailLog.findFirst({
     where: { leadId, sequenceId, status: { in: ["SENT", "OPENED", "REPLIED"] } },
