@@ -11,14 +11,36 @@ export default async function CampaignsPage() {
   const user = await getOrCreateDbUser();
   if (!user) redirect("/sign-in");
 
-  const campaigns = await prisma.campaign.findMany({
+  const raw = await prisma.campaign.findMany({
     where: { userId: user.id },
-    include: { _count: { select: { leads: true } } },
+    include: {
+      _count: { select: { leads: true } },
+      leads: { select: { emailLogs: { select: { status: true } } } },
+    },
     orderBy: { createdAt: "desc" },
+  });
+
+  const campaigns = raw.map(({ leads, ...campaign }) => {
+    const allLogs = leads.flatMap((l) => l.emailLogs);
+    const sent    = allLogs.filter((l) => ["SENT", "OPENED", "REPLIED"].includes(l.status)).length;
+    const opened  = allLogs.filter((l) => ["OPENED", "REPLIED"].includes(l.status)).length;
+    const replied = allLogs.filter((l) => l.status === "REPLIED").length;
+    return {
+      ...campaign,
+      stats: {
+        sent,
+        openRate:  sent > 0 ? Math.round((opened  / sent) * 100) : 0,
+        replyRate: sent > 0 ? Math.round((replied / sent) * 100) : 0,
+      },
+    };
   });
 
   const totalLeads = campaigns.reduce((sum, c) => sum + c._count.leads, 0);
   const activeCampaigns = campaigns.filter((c) => c.status === "ACTIVE").length;
+  const sentCampaigns = campaigns.filter((c) => c.stats.sent > 0);
+  const avgOpenRate = sentCampaigns.length > 0
+    ? Math.round(sentCampaigns.reduce((sum, c) => sum + c.stats.openRate, 0) / sentCampaigns.length)
+    : null;
 
   return (
     <div>
@@ -68,7 +90,7 @@ export default async function CampaignsPage() {
           },
           {
             label: "Avg. Open Rate",
-            value: "—",
+            value: avgOpenRate !== null ? `${avgOpenRate}%` : "—",
             icon: TrendingUp,
             color: "text-amber-600",
             bg: "bg-amber-50",

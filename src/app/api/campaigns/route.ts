@@ -14,11 +14,29 @@ export async function GET() {
 
   const campaigns = await prisma.campaign.findMany({
     where: { userId: user.id },
-    include: { _count: { select: { leads: true } } },
+    include: {
+      _count: { select: { leads: true } },
+      leads: { select: { emailLogs: { select: { status: true } } } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(campaigns);
+  const campaignsWithStats = campaigns.map(({ leads, ...campaign }) => {
+    const allLogs = leads.flatMap((l) => l.emailLogs);
+    const sent    = allLogs.filter((l) => ["SENT", "OPENED", "REPLIED"].includes(l.status)).length;
+    const opened  = allLogs.filter((l) => ["OPENED", "REPLIED"].includes(l.status)).length;
+    const replied = allLogs.filter((l) => l.status === "REPLIED").length;
+    return {
+      ...campaign,
+      stats: {
+        sent,
+        openRate:  sent > 0 ? Math.round((opened  / sent) * 100) : 0,
+        replyRate: sent > 0 ? Math.round((replied / sent) * 100) : 0,
+      },
+    };
+  });
+
+  return NextResponse.json(campaignsWithStats);
 }
 
 export async function POST(req: Request) {

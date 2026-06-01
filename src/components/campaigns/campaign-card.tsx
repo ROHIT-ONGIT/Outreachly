@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { Users, Mail, TrendingUp, ArrowRight } from "lucide-react";
+import { Users, Mail, TrendingUp, MessageSquareReply, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CampaignStatusToggle } from "./campaign-status-toggle";
 import type { Campaign, CampaignStatus } from "@/generated/prisma/client";
 
-type CampaignWithCount = Campaign & { _count: { leads: number } };
+type CampaignWithCount = Campaign & {
+  _count: { leads: number };
+  stats: { sent: number; openRate: number; replyRate: number };
+};
 
 const statusConfig: Record<CampaignStatus, { label: string; dot: string; text: string; bg: string }> = {
   DRAFT: {
@@ -86,8 +89,21 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithCount }) {
             <TrendingUp className="h-3 w-3 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-foreground">—</p>
+            <p className="text-[13px] font-semibold text-foreground">
+              {campaign.stats.sent > 0 ? `${campaign.stats.openRate}%` : "—"}
+            </p>
             <p className="text-[10px] text-muted-foreground leading-none">Open rate</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center">
+            <MessageSquareReply className="h-3 w-3 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-foreground">
+              {campaign.stats.sent > 0 ? `${campaign.stats.replyRate}%` : "—"}
+            </p>
+            <p className="text-[10px] text-muted-foreground leading-none">Reply rate</p>
           </div>
         </div>
 
