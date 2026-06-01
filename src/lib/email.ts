@@ -1,9 +1,14 @@
 import { Resend } from "resend";
 import sgMail from "@sendgrid/mail";
 
-export const resend = new Resend(process.env.RESEND_API_KEY!);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY!);
+}
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+function initSendGrid() {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+  return sgMail;
+}
 
 interface SendOutreachEmailParams {
   to: string;
@@ -14,7 +19,7 @@ interface SendOutreachEmailParams {
 }
 
 export async function sendOutreachEmail(params: SendOutreachEmailParams) {
-  return sgMail.send({
+  return initSendGrid().send({
     to: params.to,
     from: params.from,
     subject: params.subject,
@@ -38,7 +43,7 @@ interface SendTransactionalEmailParams {
 export async function sendTransactionalEmail(
   params: SendTransactionalEmailParams
 ) {
-  return resend.emails.send({
+  return getResend().emails.send({
     from: "Outreachly <noreply@outreachly.in>",
     to: params.to,
     subject: params.subject,
