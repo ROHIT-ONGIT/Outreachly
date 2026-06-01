@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     plan_id: planConfig.planId,
     customer_notify: 1,
     // 12 billing cycles then stop; set higher for indefinite
-    total_count: 12,
+    total_count: 120, // 10 years; effectively indefinite for a monthly subscription
     quantity: 1,
     notes: { userId: user.id, userEmail: user.email },
   });

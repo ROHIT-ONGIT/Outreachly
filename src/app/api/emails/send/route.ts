@@ -62,10 +62,10 @@ export async function POST(req: Request) {
 
   function personalize(text: string) {
     return text
-      .replace(/\{\{firstName\}\}/g, lead.firstName)
-      .replace(/\{\{lastName\}\}/g, lead.lastName)
-      .replace(/\{\{company\}\}/g, lead.company)
-      .replace(/\{\{title\}\}/g, lead.title);
+      .replace(/\{\{firstName\}\}/g, lead!.firstName)
+      .replace(/\{\{lastName\}\}/g, lead!.lastName)
+      .replace(/\{\{company\}\}/g, lead!.company)
+      .replace(/\{\{title\}\}/g, lead!.title);
   }
 
   try {
