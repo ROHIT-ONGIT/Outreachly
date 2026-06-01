@@ -16,15 +16,21 @@ interface SendOutreachEmailParams {
   subject: string;
   body: string;
   emailLogId?: string;
+  unsubscribeUrl?: string;
 }
 
 export async function sendOutreachEmail(params: SendOutreachEmailParams) {
+  const footer = params.unsubscribeUrl
+    ? `\n\n---\nDon't want to receive these emails? <a href="${params.unsubscribeUrl}">Unsubscribe</a>`
+    : "";
+  const bodyWithFooter = params.body + footer;
+
   return initSendGrid().send({
     to: params.to,
     from: params.from,
     subject: params.subject,
-    text: params.body,
-    html: params.body.replace(/\n/g, "<br>"),
+    text: params.body + (params.unsubscribeUrl ? `\n\n---\nUnsubscribe: ${params.unsubscribeUrl}` : ""),
+    html: bodyWithFooter.replace(/\n/g, "<br>"),
     // emailLogId is passed back in every SendGrid event webhook payload
     ...(params.emailLogId ? { customArgs: { emailLogId: params.emailLogId } } : {}),
     trackingSettings: {

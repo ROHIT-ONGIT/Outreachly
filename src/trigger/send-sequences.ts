@@ -1,6 +1,7 @@
 import { schedules } from "@trigger.dev/sdk/v3";
 import { prisma } from "@/lib/prisma";
 import { sendOutreachEmail } from "@/lib/email";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 /**
  * Runs every 15 minutes. For every ACTIVE campaign it walks each lead,
@@ -29,6 +30,9 @@ export const sendSequencesTask = schedules.task({
       if (campaign.sequences.length === 0) continue;
 
       for (const lead of campaign.leads) {
+        // Skip unsubscribed leads
+        if (lead.unsubscribed) { summary.skipped++; continue; }
+
         // Stop sequence entirely if lead has replied to any step
         const hasReplied = await prisma.emailLog.findFirst({
           where: {
@@ -97,6 +101,7 @@ export const sendSequencesTask = schedules.task({
             subject: personalize(nextSeq.subject),
             body: personalize(nextSeq.body),
             emailLogId: log.id,
+            unsubscribeUrl: generateUnsubscribeUrl(lead.id),
           });
 
           await prisma.emailLog.update({

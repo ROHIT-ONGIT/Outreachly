@@ -39,9 +39,10 @@ model Lead {
   email       String
   company     String
   title       String
-  linkedinUrl String?
-  emailLogs   EmailLog[]
-  createdAt   DateTime   @default(now())
+  linkedinUrl  String?
+  unsubscribed Boolean    @default(false)
+  emailLogs    EmailLog[]
+  createdAt    DateTime   @default(now())
 }
 
 model Sequence {

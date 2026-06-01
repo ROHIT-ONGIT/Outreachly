@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getOrCreateDbUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendOutreachEmail } from "@/lib/email";
+import { generateUnsubscribeUrl } from "@/lib/unsubscribe";
 
 const schema = z.object({
   leadId: z.string().min(1),
@@ -36,6 +37,9 @@ export async function POST(req: Request) {
   });
   if (!lead) {
     return NextResponse.json({ error: "Lead not found" }, { status: 404 });
+  }
+  if (lead.unsubscribed) {
+    return NextResponse.json({ error: "Lead has unsubscribed" }, { status: 422 });
   }
 
   // Block only if already successfully delivered
@@ -75,6 +79,7 @@ export async function POST(req: Request) {
       subject: personalize(sequence.subject),
       body: personalize(sequence.body),
       emailLogId: log.id,
+      unsubscribeUrl: generateUnsubscribeUrl(lead.id),
     });
 
     const sent = await prisma.emailLog.update({
